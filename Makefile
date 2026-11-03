@@ -3,7 +3,7 @@
 # Lo que no se define aquí se reenvía a idp-platform: `make up`, `make root`, `make backstage ...`, etc.
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
-.PHONY: help init pull repos commit push configure use-ssh use-https ssh-check rollback rollout
+.PHONY: help init pull repos commit push doctor configure use-ssh use-https ssh-check rollback rollout
 
 help: ## Esta ayuda
 	@echo "idp: repo paraguas (submódulos: idp-platform, idp-backstage, idp-sample-app)"
@@ -12,6 +12,9 @@ help: ## Esta ayuda
 	@echo
 	@echo "Todo lo demás se reenvía a idp-platform (make up, make root, make backstage-secrets, ...):"
 	@$(MAKE) --no-print-directory -C idp-platform help | grep -v -E 'rollback|rollout|set-owner'
+
+doctor: ## Comprueba las herramientas instaladas (docker, k3d, kubectl, git, ssh...) y dice cómo instalar lo que falte
+	@./scripts/doctor.sh
 
 init: ## Descarga los submódulos y deja los scripts ejecutables
 	@git submodule update --init

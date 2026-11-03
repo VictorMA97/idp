@@ -61,6 +61,7 @@ añadida a <https://github.com/settings/keys> y cargada en el agente (`ssh-add`)
 
 | Comando | Qué hace |
 |---|---|
+| `make doctor` | Comprueba las herramientas instaladas (git, make, curl, openssl, docker y su daemon, k3d, kubectl; además ssh, gh, node y yarn) y dice cómo instalar lo que falte. Úsalo antes de `make up`; después, `make preflight` comprueba los puertos libres |
 | `make help` | Todos los comandos (los de aquí y los de `idp-platform`) |
 | `make configure OWNER=<usuario>` | Pone tu cuenta en los tres repos (Kyverno, descubrimiento, catálogo, `node_id`, URL de Argo CD) |
 | `make use-ssh` / `make use-https` / `make ssh-check` | Protocolo de los remotos y comprobación de la clave SSH |
@@ -73,6 +74,7 @@ añadida a <https://github.com/settings/keys> y cargada en el agente (`ssh-add`)
 
 ## Puesta en marcha completa
 
+0. `make doctor`: comprueba que tienes las herramientas.
 1. Prerrequisitos y Etapas 1 a 6: [`idp-platform/README.md`](idp-platform/README.md).
 2. Los comandos de ese README se ejecutan igual desde aquí (`make up`, `make root`...).
 3. Para tu cuenta: `make configure OWNER=<usuario>` sustituye los pasos manuales de `set-owner` y `set-repo`;
