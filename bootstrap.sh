@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Convierte esta carpeta en el repo `idp` con los tres repos como submódulos. Se ejecuta UNA vez.
-# Uso: ./bootstrap.sh <usuario-de-github>
+# Uso: ./bootstrap.sh <usuario-de-github> [--ssh]
+#   --ssh  remotos git@github.com:<usuario>/... (también se activa solo si tus clones ya usan SSH)
 # - Si idp-platform, idp-backstage o idp-sample-app ya existen aquí (clones tuyos), se usan tal cual,
 #   con sus cambios sin commit incluidos (no se tocan).
 # - Si faltan, se clonan de https://github.com/<usuario>/<repo>.git
@@ -10,12 +11,19 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 source scripts/lib.sh
 
-OWNER="${1:-}"
-[[ -n "$OWNER" ]] || die "Uso: ./bootstrap.sh <usuario-de-github>"
+OWNER=""; SSH="${SSH:-0}"
+for a in "$@"; do case "$a" in --ssh) SSH=1 ;; -*) die "Opción desconocida: $a" ;; *) OWNER="$a" ;; esac; done
+[[ -n "$OWNER" ]] || die "Uso: ./bootstrap.sh <usuario-de-github> [--ssh]"
+# Si algún clon existente ya usa SSH, se mantiene el protocolo
+for r in "${REPOS[@]}"; do
+  [[ -e "$r/.git" ]] && [[ "$(git -C "$r" config --get remote.origin.url 2>/dev/null || true)" == git@github.com:* ]] && SSH=1
+done
 command -v git >/dev/null || die "Falta git"
+[[ -e .git ]] && die "Esta carpeta ya es un repo git: no hace falta bootstrap (usa 'make init' en un clon nuevo)."
 
 # URL base: el repo idp vive junto a los otros (https://github.com/<usuario>/idp.git)
-BASE="${IDP_BASE_URL:-https://github.com/$OWNER}"
+if [[ "$SSH" == 1 ]]; then BASE="${IDP_BASE_URL:-git@github.com:$OWNER}"; else BASE="${IDP_BASE_URL:-https://github.com/$OWNER}"; fi
+log "Protocolo: $([[ "$SSH" == 1 ]] && echo SSH || echo HTTPS) ($BASE)"
 
 for r in "${REPOS[@]}"; do
   if [[ -e "$r/.git" ]]; then
@@ -43,10 +51,10 @@ log "Repo idp creado en esta carpeta (rama main)."
 cat <<MSG
 
 Siguiente paso: crea el repo VACÍO 'idp' en GitHub y súbelo:
-  gh repo create $OWNER/idp --public --source=. --remote=origin --push      # si tienes gh
-  # o, a mano: crea https://github.com/$OWNER/idp (sin README) y luego:
+  # crea https://github.com/$OWNER/idp (sin README) y luego:
   git push -u origin main
+  # (con gh: gh repo create $OWNER/idp --public   y después el git push de arriba)
 
 Para clonarlo en otro equipo:
-  git clone --recurse-submodules https://github.com/$OWNER/idp.git && cd idp && make init
+  git clone --recurse-submodules $BASE/idp.git && cd idp && make init
 MSG

@@ -35,9 +35,27 @@ Tus clones existentes se usan tal cual, con sus cambios sin commit incluidos.
 ## Clonarlo en otro equipo
 
 ```bash
-git clone --recurse-submodules https://github.com/<usuario>/idp.git
+git clone --recurse-submodules https://github.com/<usuario>/idp.git     # o por SSH: git@github.com:<usuario>/idp.git
 cd idp && make init
 ```
+
+## SSH
+
+Todo el git local (clonar, submódulos, `make pull`, `make push`) funciona por SSH:
+
+```bash
+./bootstrap.sh <usuario> --ssh     # al crearlo (se activa solo si tus clones ya usan SSH)
+make use-ssh                       # o, si ya lo tienes en HTTPS: cambia los remotos de idp y de los 3 repos
+make ssh-check                     # comprueba protocolo de los remotos, clave cargada y acceso a cada repo
+make use-https                     # para volver
+```
+
+Los submódulos usan URLs relativas, así que siguen el protocolo del `origin` de `idp`. Necesitas una clave SSH
+añadida a <https://github.com/settings/keys> y cargada en el agente (`ssh-add`); `make ssh-check` te dice qué falta.
+
+**Argo CD sigue usando HTTPS**, con los repos públicos y sin credenciales: no tiene claves SSH. Por eso
+`make set-repo`, `make backstage` y `make sample-app` convierten cualquier URL SSH a HTTPS en los manifiestos
+(lo que va a Git y lee Argo). Si algún día un repo fuera privado, habría que darle a Argo CD una deploy key.
 
 ## Uso diario
 
@@ -45,6 +63,7 @@ cd idp && make init
 |---|---|
 | `make help` | Todos los comandos (los de aquí y los de `idp-platform`) |
 | `make configure OWNER=<usuario>` | Pone tu cuenta en los tres repos (Kyverno, descubrimiento, catálogo, `node_id`, URL de Argo CD) |
+| `make use-ssh` / `make use-https` / `make ssh-check` | Protocolo de los remotos y comprobación de la clave SSH |
 | `make repos` | `git status` de los tres repos y de los punteros de `idp` |
 | `make pull` | Trae lo nuevo de los tres repos (p. ej. el digest que escribe el CI) |
 | `make commit MSG="..."` | Commit en cada repo con cambios y luego en `idp` |
@@ -75,4 +94,5 @@ cd idp && make init
 | `Falta el submódulo ...` | Clonado sin `--recurse-submodules` | `make init` |
 | `make pull`: «no se pudo avanzar» | Cambios locales o ramas divergentes en ese repo | `cd <repo>`, resuélvelo con git y repite |
 | `make push` falla en un repo | Sin permisos o la rama remota avanzó | `make pull` y repite |
+| `Permission denied (publickey)` al hacer pull/push | GitHub no conoce tu clave o no está cargada en el agente | `make ssh-check` y sigue sus pasos |
 | `make configure` no obtiene el `node_id` | Límite de la API de GitHub o sin red | `NODE_ID=$(gh api users/<usuario> --jq .node_id) make configure OWNER=<usuario>` |
