@@ -1,0 +1,9 @@
+[submodule "idp-backstage"]
+	path = idp-backstage
+	url = https://github.com/VictorMA97/idp-backstage.git
+[submodule "idp-platform"]
+	path = idp-platform
+	url = https://github.com/VictorMA97/idp-platform.git
+[submodule "idp-sample-app"]
+	path = idp-sample-app
+	url = https://github.com/VictorMA97/idp-sample-app.git

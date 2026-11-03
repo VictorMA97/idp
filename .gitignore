@@ -1,0 +1,3 @@
+# Los repos hijos son submódulos (cada uno con su propio .gitignore)
+.DS_Store
+*.swp
